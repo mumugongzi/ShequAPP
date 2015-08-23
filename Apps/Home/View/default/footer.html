@@ -1,0 +1,50 @@
+<div class="wst-footer-fl-box">
+	<div class="wst-footer" >
+		<div class="wst-footer-cld-box">
+			<div class="wst-footer-fl">友情链接：</div>
+			<div style="padding-left:30px;">
+				<volist name="friendLikds" key="k" id="vo">
+				<div style="float:left;"><a href="{$vo["friendlinkUrl"]}" target="_blank">{$vo["friendlinkName"]}</a>&nbsp;&nbsp;</div> 
+				</volist>
+				<div class="wst-clear"></div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="wst-footer-hp-box">
+	<div class="wst-footer">
+		<div class="wst-footer-hp-ck1">
+			<volist name="helps" key="k1" id="vo1">
+			<div class="wst-footer-wz-ca">
+				<div class="wst-footer-wz-pt">
+				    <img src="__ROOT__/Apps/Home/View/default/images/a{$k1}.jpg" height="18" width="18"/>
+					<span class="wst-footer-wz-pn">{$vo1["catName"]}</span>
+					<div style='margin-left:30px;'>
+						<volist name="vo1['articlecats']" key="k2" id="vo2">
+						<a href="__ROOT__/index.php/Home/Articles/index/?articleId={$vo2['articleId']}">{$vo2['articleTitle']}</a><br/>
+						</volist>
+					</div>
+				</div>
+			</div>
+			</volist>
+			
+			<div class="wst-footer-wz-clt">
+				<div style="padding-top:5px;line-height:25px;">
+				    <img src="__ROOT__/Apps/Home/View/default/images/a6.jpg" height="18" width="18"/>
+					<span class="wst-footer-wz-kf">联系客服</span>
+					<div style='margin-left:30px;'>
+						<a href="#">订购热线</a><br/>
+						<span class="wst-footer-pno">社区电话!</span><br/>
+						<a href="#">在线客服</a><br/>
+						<a href="#" class="wst-footer-wz-ent">点击这里进入</a><br/>
+					</div>
+				</div>
+			</div>
+			<div class="wst-clear"></div>
+		</div>
+	    
+		
+	    
+	</div>
+</div>

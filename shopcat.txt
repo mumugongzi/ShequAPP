@@ -1,0 +1,1 @@
+{"4":{"goodsId":"4","goodsSn":"001","goodsName":"\u8001\u5a46\u997c","goodsThums":"Upload\/goods\/2015-07\/55b3589286f65.jpg","shopId":"2","marketPrice":"16.00","shopPrice":"12.80","goodsStock":"655","bookQuantity":"0","isBook":"0","shopName":"\u7a3b\u9999\u6751","cnt":1}}

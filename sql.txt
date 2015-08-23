@@ -1,0 +1,1 @@
+update shequ_goods set goodsStock=goodsStock-1 where goodsId=4

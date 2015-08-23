@@ -1,0 +1,1 @@
+{"addressId":"1","userId":"5","userName":"\u6d4b\u8bd5","userPhone":"13070131316","userTel":"","areaId1":"420000","areaId2":"420600","areaId3":"420606","communityId":"17","address":"dfdh","addressDetail":null,"postCode":"","isDefault":"0","addressFlag":"1","createTime":"2015-07-25 17:51:52","remark":null,"paddress":"\u8944\u9633\u5e02 \u6a0a\u57ce\u533a "}
