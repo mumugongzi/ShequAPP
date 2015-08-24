@@ -291,7 +291,7 @@ class UsersAction extends BaseAction {
 	public function getPhoneVerify(){
 		$rs = array('status'=>-1);
 		//dump($_POST['userPhoneNumber']);
-		file_put_contents("remarks.txt",json_encode($_POST) );
+		file_put_contents("postuserphone.txt",json_encode($_POST) );
 		/* if(session('findPass.userPhone')==''){
 			$this->ajaxReturn($rs);
 		} */
@@ -302,7 +302,8 @@ class UsersAction extends BaseAction {
 		//dump($USER['userPhone']);
 		$USER['phoneVerify'] = $phoneVerify;
         session('findPass',$USER);
-		
+		$ddd = session('findPass.phoneVerify');
+		file_put_contents("setsessionvcode.txt",json_encode($ddd) );
 		//dump($USER['userPhone']);
 		
         //dump($phoneVerify);
@@ -332,7 +333,7 @@ class UsersAction extends BaseAction {
             //echo "短信验证码已发送成功，请注意查收短信";
 			//return $this->json(100,"短信验证码已发送成功",$obj["resp"]["templateSMS"]["smsId"],'smsId');
            
-            return $this->json(100,"短信验证码已发送成功");
+            return $this->json(100,"短信验证码已发送成功",$phoneVerify,"verificationCode");
         }else{
             //如果不成功
             //echo "短信验证码发送失败，请联系客服";    

@@ -203,6 +203,7 @@ class UserAddressModel extends BaseModel {
 		$addrList=array();
 		foreach ($addrInfo as $key => $value) {
 			$tmp=array();
+			$tmp['user_address_id']=$value['addressId'];
 			$tmp['user_name']=$value['userName'];
 			if(!empty($value['userPhone'])){
 				$tmp['user_phoneNumber']=$value['userPhone'];

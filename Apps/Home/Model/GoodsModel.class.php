@@ -152,11 +152,13 @@ class GoodsModel extends BaseModel {
 	}
 	
 
+
 	/**
 	 * 查询商品信息
 	 */
 	public function getGoodsDetails($obj){		
 		$goodsId = $obj["goodsId"];
+		
 		$sql = "SELECT sc.catName,sc2.catName as pCatName, g.*,shop.shopName,shop.deliveryType,shop.shopAtive,
 				shop.shopTel,shop.shopAddress,shop.deliveryStartTime,shop.deliveryEndTime，shop.isInvoice, shop.deliveryStartMoney, 
 				shop.deliveryFreeMoney,shop.deliveryMoney ,g.goodsSn,shop.serviceStartTime,shop.serviceEndTime
@@ -167,7 +169,6 @@ class GoodsModel extends BaseModel {
 		return $rs[0];
 		
 	}
-	
 	
 	/**
 	 * 获取商品相册
@@ -504,6 +505,132 @@ class GoodsModel extends BaseModel {
 		}
 		$rs = $this->query($sql);
 		return $rs;
+		
+	}
+	
+	/**
+	 * 统计商品信息
+	 */
+	public function getGoodDetails1($obj){		
+		$shopId = I("shopId",0);
+		$ct1 = I("ct1",0);
+		$ct2 = I("ct2",0);
+		$msort = I("msort",0);//排序標識		
+		
+		$sprice = I("sprice");//开始价格
+		$eprice = I("eprice");//结束价格
+		$goodsName = I("goodsName");//搜索店鋪名
+		$sql = "SELECT sp.shopName, SUM(og.goodsNums) totalnum, sp.shopId ,g.goodsStock, g.goodsId , g.goodsName,g.goodsImg, g.goodsThums,g.shopPrice,g.marketPrice, g.goodsSn 
+						FROM __PREFIX__goods g
+						LEFT JOIN __PREFIX__order_goods og ON g.goodsId = og.goodsId,
+						__PREFIX__shops sp 
+						WHERE g.shopId = sp.shopId AND g.goodsFlag = 1 AND g.isSale = 1 AND g.goodsStatus = 1 AND g.shopId = $shopId";
+		
+		if($ct1>0){
+			$sql .= " AND g.shopCatId1 = $ct1 ";
+		}
+		if($ct2>0){
+			$sql .= " AND g.shopCatId2 = $ct2 ";
+		}
+		if($sprice!=""){
+			$sql .= " AND g.shopPrice >= '$sprice' ";
+		}
+		if($eprice!=""){
+			$sql .= " AND g.shopPrice <= '$eprice' ";
+		}
+		if($goodsName!=""){
+			$sql .= " AND g.goodsName like '%$goodsName%' ";
+		}
+		$sql .= " GROUP BY g.goodsId ";
+		if($msort==1){//综合
+			$sql .= " ORDER BY SUM(og.goodsNums) DESC ";
+		}else if($msort==2){//人气
+			$sql .= " ORDER BY SUM(og.goodsNums) DESC ";
+		}else if($msort==3){//销量
+			$sql .= " ORDER BY SUM(og.goodsNums) DESC ";
+		}else if($msort==4){//价格
+			$sql .= " ORDER BY g.shopPrice ASC ";
+		}else if($msort==5){//价格
+			$sql .= " ORDER BY g.shopPrice DESC ";
+		}else if($msort==6){//好评
+			
+		}else if($msort==7){//上架时间
+			$sql .= " ORDER BY g.saleTime DESC ";
+		}
+		$rs = $this->query($sql);
+		return $rs;
+		
+		
+	}
+	
+	/**
+	 * 统计商品信息
+	 */
+	public function getGoodDetails($shopId){		
+		$shopId = $shopId;
+		//dump($shopId);
+		$ct1 = I("ct1",0);
+		//dump($ct1);
+		$ct2 = I("ct2",0);
+		$msort = I("msort",0);//排序標識		
+		
+		$sprice = I("sprice");//开始价格
+		$eprice = I("eprice");//结束价格
+		$goodsName = I("goodsName");//搜索店鋪名
+		//一个月订单量
+		$mdate=date("Y-m-d",mktime(0,0,0,date("m")-1,date("d"),date("Y")));
+		
+		//$sql = "SELECT count(*) cnt, sum(totalMoney) totalMoney FROM __PREFIX__orders WHERE shopId = $shopId  AND createTime >='$mdate' and orderFlag=1 ";
+		//$sql .= " AND createTime >='$mdate' ";
+		$sql = "SELECT sp.shopName, SUM(og.goodsNums) totalnum, sp.shopId ,g.* 
+						FROM __PREFIX__goods g
+						LEFT JOIN __PREFIX__order_goods og ON g.goodsId = og.goodsId,
+						__PREFIX__shops sp 
+						WHERE g.shopId = sp.shopId AND g.goodsFlag = 1 AND g.isSale = 1 AND g.goodsStatus = 1 AND g.shopId = $shopId ";
+		$sql .= " AND og.createTime >='$mdate' ";
+		
+		if($ct1>0){
+			$sql .= " AND g.shopCatId1 = $ct1 ";
+		}
+		if($ct2>0){
+			$sql .= " AND g.shopCatId2 = $ct2 ";
+		}
+		if($sprice!=""){
+			$sql .= " AND g.shopPrice >= '$sprice' ";
+		}
+		if($eprice!=""){
+			$sql .= " AND g.shopPrice <= '$eprice' ";
+		}
+		if($goodsName!=""){
+			$sql .= " AND g.goodsName like '%$goodsName%' ";
+		}
+		$sql .= " GROUP BY g.goodsId ";
+		if($msort==1){//综合
+			$sql .= " ORDER BY SUM(og.goodsNums) DESC ";
+		}else if($msort==2){//人气
+			$sql .= " ORDER BY SUM(og.goodsNums) DESC ";
+		}else if($msort==3){//销量
+			$sql .= " ORDER BY SUM(og.goodsNums) DESC ";
+		}else if($msort==4){//价格
+			$sql .= " ORDER BY g.shopPrice ASC ";
+		}else if($msort==5){//价格
+			$sql .= " ORDER BY g.shopPrice DESC ";
+		}else if($msort==6){//好评
+			
+		}else if($msort==7){//上架时间
+			$sql .= " ORDER BY g.saleTime DESC ";
+		}
+		$rs = $this->query($sql);
+		//dump($rs);
+		//一个月订单量
+		$mdate=date("Y-m-d",mktime(0,0,0,date("m")-1,date("d"),date("Y")));
+		
+		//$sql = "SELECT count(*) cnt, sum(totalMoney) totalMoney FROM __PREFIX__orders WHERE shopId = $shopId  AND createTime >='$mdate' and orderFlag=1 ";
+		//$sql .= " AND createTime >='$mdate' ";
+		//$rss = $this->query($sql);
+		//dump($rss);
+		return $rs;
+		
 		
 	}
 	

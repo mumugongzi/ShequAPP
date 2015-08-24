@@ -38,8 +38,8 @@ class OrdersAppAction extends OrdersAction{
 
 		$shopId=I('shopId');
 		$userId=I('userId');
-		$userAddress=I('userAddress');
-
+		$userAddress=(I('userAddress')==0)?14:I('userAddress');
+		file_put_contents("loaduserAddress.txt", $userAddress);
 
 		$m=M('user_address');
 		$userAddressInfo=$m->where("addressId=".$userAddress)->select();
@@ -48,12 +48,13 @@ class OrdersAppAction extends OrdersAction{
 		$isself=0;		//默认非自取
 		$needreceipt=0; //默认不需要发票
 		$consigneeId=$userAddress;
+		file_put_contents("consigneeId.txt", $consigneeId);
 		$orderunique=time();
 		$remark=I('orderOthers');
 		session('WST_USER.userId',$userId);
 
 		$userMenu=I('userMenu');
-		//file_put_contents("post.txt", json_encode($_POST));
+		file_put_contents("order_post.txt", json_encode($_POST));
 		// $encode = mb_detect_encoding($userMenu,array("ASCII","UTF-8","GB2312","GBK","BIG5")); 
 		// echo $encode;
 		// $userMenu = str_replace("'", '"', $userMenu);
@@ -62,7 +63,7 @@ class OrdersAppAction extends OrdersAction{
 		// $encode = mb_detect_encoding($userMenu,array("ASCII","UTF-8","GB2312","GBK","BIG5")); 
 		// echo $encode;
 		$catInfo=$this->decodeUserMenu($userMenu);
-		//file_put_contents("catInfo.txt", json_encode($catInfo));
+		file_put_contents("order_catInfo.txt", json_encode($catInfo));
 		// echo I('userMenu')."HHHH"."<br/>";
 		// echo json_last_error();
 		//dump($catInfo);
@@ -73,7 +74,7 @@ class OrdersAppAction extends OrdersAction{
 		}
 
 		$shopcat = session("WST_CART")?session("WST_CART"):array();	
-		//file_put_contents("shopcat.txt", json_encode($shopcat));
+		file_put_contents("order_shopcat.txt", json_encode($shopcat));
 
 		$goodsmodel = D('Home/Goods');
 		$morders = D('Home/Orders');
@@ -136,7 +137,7 @@ class OrdersAppAction extends OrdersAction{
 					//$this->display('default/paystep1');	
 				//}
 				//$this->display();
-				//file_put_contents("sql.txt", M()->getLastsql());
+				file_put_contents("order_sql.txt", M()->getLastsql());
 				$this->json(100,'下单成功');
 			}
 		}else{

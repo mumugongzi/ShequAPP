@@ -1,0 +1,3 @@
+<?php
+//000000086400a:2:{i:0;a:5:{s:5:"catId";s:2:"11";s:8:"parentId";s:1:"0";s:7:"catName";s:6:"糕点";s:6:"shopId";s:1:"2";s:8:"children";a:3:{i:0;a:4:{s:5:"catId";s:2:"12";s:8:"parentId";s:2:"11";s:7:"catName";s:12:"中式糕点";s:6:"shopId";s:1:"2";}i:1;a:4:{s:5:"catId";s:2:"19";s:8:"parentId";s:2:"11";s:7:"catName";s:6:"零食";s:6:"shopId";s:1:"2";}i:2;a:4:{s:5:"catId";s:2:"21";s:8:"parentId";s:2:"11";s:7:"catName";s:12:"西式糕点";s:6:"shopId";s:1:"2";}}}i:1;a:4:{s:5:"catId";s:2:"20";s:8:"parentId";s:1:"0";s:7:"catName";s:6:"面包";s:6:"shopId";s:1:"2";}}
+?>

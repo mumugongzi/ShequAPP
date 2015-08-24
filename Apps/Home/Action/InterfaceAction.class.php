@@ -53,7 +53,7 @@ class InterfaceAction extends BaseAction{
 			return $this->json(100, '成功', $userInfo,"userInfo");
 		}else{
 			$user = 'loginName or loginPWD error';
-			return $this->json(400, '服务器异常', $user,"userInfo");
+			return $this->json(400, '失败');
 		}
 
 	}
@@ -68,6 +68,13 @@ class InterfaceAction extends BaseAction{
 		$loginName = I('userAccount');
 		$password = I('password');
 		$verificationCode = I('verificationCode');
+		$userPhone = session('findPass.userPhone');
+		$vcode = session('findPass.phoneVerify');
+		$sessions = session('findPass');
+		file_put_contents("sessions.txt",$sessions);
+		file_put_contents("sessionvcode.txt",json_encode($vcode) );
+		file_put_contents("vcode.txt",json_encode($verificationCode) );
+		//$userPhone = isset($_POST('userPhone'))?$_POST('userPhone'):session('findPass.userPhone');
 		//$m = M('users'); 
 		/* dump($loginName);
 		dump($password);
@@ -76,85 +83,38 @@ class InterfaceAction extends BaseAction{
 		
 		$m = M('users');
     	$rd = array('status'=>-1);	
-		/* if (session('findPass.phoneVerify') != $verificationCode ) {
-			$rd['status'] = 2;	
-		}else{
+		if (session('findPass.phoneVerify') == $verificationCode ) {
 			$rd['status'] = 0;
-		} */
-		$rd['status'] = 0;
-    	$data = array();
-    	$data['loginName'] = I('userAccount');
-    	$data['loginPwd'] = I("password");
-		$loginName = $data['loginName'];
-		$data["loginSecret"] = rand(1000,9999);
+		}else{
+			$rd['status'] = 2;	
+		}
 		
-	    $data['loginPwd'] = md5(I('password').$data['loginSecret']);
-		
-		$data['userType'] = 0;
-	    $data['userName'] = I('userName');
-	    $data['userQQ'] = I('userQQ');
-	    $data['userPhone'] = I('userPhone');
-	    $data['userScore'] = I('userScore');
-		$data['userEmail'] = I("userEmail");
-	    $data['createTime'] = date('Y-m-d H:i:s');
-	    $data['userFlag'] = 1;
-    	//$data['reUserPwd'] = I("password");
-    	//$data['protocol'] = 1;
-    	
-    	/* if($data['loginPwd']!=$data['reUserPwd']){
-    		$rd['status'] = -3;
-    		return $rd;
-    	}
-    	if($data['protocol']!=1){
-    		$rd['status'] = -6;
-    		return $rd;
-    	}
-    	foreach ($data as $v){
-    		if($v ==''){
-    			$rd['status'] = -7;
-    			return $rd;
-    		}
-    	} */
-        //检测账号是否存在
-        /* $crs = $this->checkLoginKey($loginName);
+		//检测账号是否存在
+		$md = D('Users');
+        $crs = $md->checkLoginKey($loginName);
         if($crs['status']!=1){
-	    	$rd['status'] = -2;
-	    	return $rd;
-	    }
-	    $nameType = I("nameType");
-	    $mobileCode = I("mobileCode",''); */
-		
-		/* if($nameType==3){//手机号码
-			$verify = session('VerifyCode_userPhone');
-			$startTime = (int)session('VerifyCode_userPhone_Time');
-			if((time()-$startTime)>120){
-				$rd['status'] = -5;
-				return $rd;
-			}
-			if($mobileCode=="" || $verify != $mobileCode){
-				$rd['status'] = -4;
-				return $rd;
-			}
-			$loginName = $this->randomLoginName($loginName);
-		}else if($nameType==1){//邮箱注册
-			$unames = explode("@",$loginName);
-			$loginName = $this->randomLoginName($unames[0]);
-		} */
-		
-		/* $data['loginName'] = $loginName;
-	    unset($data['reUserPwd']);
-	    unset($data['protocol']); */
-	    //检测账号，邮箱，手机是否存在
-	    /* $data["loginSecret"] = rand(1000,9999);
-	    $data['loginPwd'] = md5(I('loginPwd').$data['loginSecret']);
-	    $data['userType'] = 0;
-	    $data['userName'] = I('userName');
-	    $data['userQQ'] = I('userQQ');
-	    $data['userPhone'] = I('userPhone');
-	    $data['userScore'] = I('userScore');
-		$data['userEmail'] = I("userEmail");
-	    $data['createTime'] = date('Y-m-d H:i:s');
-	    $data['userFlag'] = 1; */
+	    	$rd['status'] = 3;   //账号名已存在
+			//dump($crs['status']);
+	    	
+	    }else{
+			$rd['status'] = 0;
+			$data = array();
+			$data['loginName'] = I('userAccount');
+			$data['loginPwd'] = I("password");
+			$loginName = $data['loginName'];
+			$data["loginSecret"] = rand(1000,9999);
+			
+			$data['loginPwd'] = md5(I('password').$data['loginSecret']);
+			
+			$data['userType'] = 0;
+			$data['userName'] = I('userName');
+			$data['userQQ'] = I('userQQ');
+			$data['userPhone'] = $userPhone;
+			$data['userScore'] = I('userScore');
+			$data['userEmail'] = I("userEmail");
+			$data['createTime'] = date('Y-m-d H:i:s');
+			$data['userFlag'] = 1;
+		}
 	    
 		if($rd['status'] == 0){
 			$rs = $m->add($data);
@@ -162,15 +122,10 @@ class InterfaceAction extends BaseAction{
 			$rd['status'] = 1;
 			$info['userId']= $rs;
 			$info['userAccount'] = I('userAccount');
-			$info['password'] = I("password");
-			
-		} 
+			$info['password'] = I("password");			
+			} 
 		}
-	    
-	
-		 
-		
-	   
+	       
 	    switch ($rd['status']) {
     		case 1:#注册成功
     			return $this->json(100, '注册成功',$info,"registerUserInfo");
@@ -182,25 +137,77 @@ class InterfaceAction extends BaseAction{
     			return $this->json(401, '用户已注册');
     			break;
     		default:
-    			return $this->json(400, '用户已注册');
+    			return $this->json(400, '注册失败');
     			break;
     	}  	
-	   
-	    
-			
-		
-		
-		if($rd['status'] == 1) {	
-			
-			
-			return $this->json(100, '注册成功',$info,"registerUserInfo");
-		}else{
-			$user = 'loginName or loginPWD error';
-			return $this->json(400, '服务器异常');
-		}
 
 	}
 
+	/*
+	*找回密码接口
+	*/
+	public function UserFindPasswd(){
+
+		$loginName = I('userAccount');
+		$password = I('password');
+		$verificationCode = I('verificationCode');
+		$userPhone = session('findPass.userPhone');
+		$vcode = session('findPass.phoneVerify');
+		$sessions = session('findPass');
+			
+		$m = M('users');
+    	$rd = array('status'=>-1);	
+		if (session('findPass.phoneVerify') == $verificationCode ) {
+			$rd['status'] = 0;
+		}else{
+			$rd['status'] = 2;	
+		}
+		
+		//检测账号是否存在
+		$md = D('Users');
+        $crs = $md->checkLoginKey($loginName);
+        if($crs['status']==1){
+	    	$rd['status'] = 3;   //账号名不存在
+			//dump($crs['status']);
+	    	
+	    }else{
+			$rd['status'] = 0;
+			$data = array();
+			//$data['loginName'] = I('userAccount');
+			$data['loginPwd'] = I("password");
+			$loginName = $data['loginName'];
+			$data["loginSecret"] = rand(1000,9999);
+			
+			$data['loginPwd'] = md5(I('password').$data['loginSecret']);
+			
+		}
+	    
+		if($rd['status'] == 0){
+			$rs = $m->where('loginName='.$loginName)->setField($data);
+			if(false !== $rs){
+			$rd['status'] = 1;
+			$info['userId']= $rs;
+			$info['userAccount'] = I('userAccount');
+			$info['password'] = I("password");			
+			} 
+		}
+	       
+	    switch ($rd['status']) {
+    		case 1:#密码重置成功
+    			return $this->json(100, '注册成功',$info,"findpasswdUserInfo");
+    			break;
+    		case 2:#验证码错误
+    			return $this->json(200, '验证码错误');
+    			break;
+    		case 3:#用户不存在
+    			return $this->json(401, '用户不存在');
+    			break;
+    		default:
+    			return $this->json(400, '注册失败');
+    			break;
+    	}  	
+
+	}
 
 /*
 *获取订单列表
@@ -226,7 +233,7 @@ class InterfaceAction extends BaseAction{
 		$orders=$m->where('userId='.$userId)->order('createTime desc')->Page($page,$pageSize)->select();
 		//echo 'orders';
 		//dump($orders);									
-		
+		$ordersList = array();
 		
 		if($orders){
 			for($i=0;$i<count($orders);$i++){
@@ -271,10 +278,11 @@ class InterfaceAction extends BaseAction{
 					}*/
 				}
 			}
-			file_put_contents("remarks.txt",json_encode($ordersList) );
+			file_put_contents("ordersList.txt",json_encode($ordersList) );
 			return $this->json(100, '成功',$ordersList,"ordersList");
 		}else{
-			$ordersList = array();
+			
+			file_put_contents("ordersList.txt",json_encode($ordersList) );
 			return $this->json(100, '成功,无数据',$ordersList,"ordersList");
 		}	
 	}
@@ -353,6 +361,23 @@ class InterfaceAction extends BaseAction{
 		}	
 	}
 
+	/**
+	* 统计店铺信息
+	*/
+	public function getShopDetails($shopId){
+		
+		$data['shop']['shopId'] = $shopId;
+		$spm = D('Home/Shops');
+		$obj["shopId"] = $shopId;
+		//$obj["shopId"] = I('shopId');
+		//dump($obj["shopId"]);
+		$details = $spm->getShopDetails($obj);
+		$data['details'] = $details;
+		//dump($data);
+		return $data;
+	}	
+	
+	
 
 /**
  * 获取商铺列表
@@ -474,18 +499,23 @@ class InterfaceAction extends BaseAction{
 					$shopsList[$i]['shop_delivery_self']=$shops[$i]['isSelf'];
 					$shopsList[$i]['shop_start_time']=$shops[$i]['serviceStartTime'];
 					$shopsList[$i]['shop_end_time']=$shops[$i]['serviceEndTime'];
-					$shopsList[$i]['shop_month_sales']=$shops[$i]['areaId3'];
+					$shopId = $shops[$i]['shopId'];
+					$shopStatistics = $this->getShopDetails($shopId);
+					
+					//file_put_contents("shopid.txt",json_encode($shops[$i]['shopId']) );
+					file_put_contents("shopStatistics.txt",$ordersList );
+					$shopsList[$i]['shop_month_sales']=$shopStatistics['details']['monthOrderCnt'];
 					$shopsList[$i]['shop_star_level']=$shops[$i]['shopScore'];
 					$shopsList[$i]['shop_delivery_cost_start']=$shops[$i]['deliveryStartMoney'];
 					$shopsList[$i]['shop_delivery_time']=$shops[$i]['deliveryCostTime'];
 					$shopsList[$i]['shop_delivery_start_time']=$shops[$i]['deliveryStartTime'];
 					$shopsList[$i]['shop_delivery_end_time']=$shops[$i]['deliveryEndTime'];
-					$shopsList[$i]['shop_coupon']=isset($shops[$i]['shopCoupon'])?$shops[$i]['shopCoupon']:"无";
-					$shopsList[$i]['shop_promotions']=isset($shops[$i]['shopPromotions'])?$shops[$i]['shopPromotions']:"无";
+					$shopsList[$i]['shop_coupon']=isset($shops[$i]['shopCoupon'])?$shops[$i]['shopCoupon']:"满20减8";
+					$shopsList[$i]['shop_promotions']=isset($shops[$i]['shopPromotions'])?$shops[$i]['shopPromotions']:"满10减3";
 					$shopsList[$i]['shop_lunchbox_cost']=$shops[$i]['lunchboxCharge'];
 					$shopsList[$i]['shop_invoice']=$shops[$i]['isInvoice'];
-					$shopsList[$i]['shop_delivery_cost']=$shops[$i]['avgeCostMoney'];
-					
+					$shopsList[$i]['shop_delivery_cost']=$shops[$i]['deliveryMoney'];
+					$shopsList[$i]['shop_delivery_freecost']=$shops[$i]['deliveryFreeMoney'];
 					
 				}else{
 					//return '';
@@ -495,7 +525,8 @@ class InterfaceAction extends BaseAction{
 			
 			return $this->json(100, '成功',$shopsList,"shopList");
 		}else{
-			return $this->json(400, '服务器异常', $shopsList,"shopList");
+			$shopsList = array();
+			return $this->json(100, '没有数据', $shopsList,"shopList");
 		}						
 	}
 	
@@ -583,10 +614,13 @@ class InterfaceAction extends BaseAction{
 			return $this->json(100, '成功',$catList,"categoryList");
 		}
 		else{
-			return $this->json(400, '服务器异常', $catList,"categoryList");
+
+			return $this->json(100, '成功', $catList,"categoryList");
 		}
 	}
 
+
+	
 /**
  * 获取商品信息
  */		
@@ -595,6 +629,7 @@ class InterfaceAction extends BaseAction{
 		$goodsCat=I('category');
 		$m=M("goods");
 		$goods=$m->where("shopId=".$shopId)->select();
+		
 		$goodsInfo=array();
 		if(!empty($goods)){
 			foreach ($goods as $good){
@@ -611,6 +646,7 @@ class InterfaceAction extends BaseAction{
 					$tmp1["goods_id"]=$good["goodsId"];
 					$tmp1["goods_price"]=$good["shopPrice"];
 					$tmp1["goods_imgLink"]="http://101.200.190.57/".$good["goodsImg"];
+					
 					$tmp1["goods_month_sales"]=$good["saleCount"];	
 					/* if($goodsCat==$cats[0]["catName"]){
 						$tmp=array();
@@ -648,9 +684,73 @@ class InterfaceAction extends BaseAction{
 			return $this->json(100, '成功',$goodsInfo,"goodsCategoryList");
 		}
 		else{
-			return $this->json(400, '服务器异常', $goodsInfo,"goodsCategoryList");
+			return $this->json(100, '成功', $goodsInfo,"goodsCategoryList");
 		}
 	}
+
+	
+/**
+ * 获取商品信息
+ */		
+	public function getGoodsInfos(){
+		$shopId=I('shop_id');
+		$goodsCat=I('category');
+		
+		$mgoods = D('Home/Goods');
+		//查询商品详情		
+		//$obj["goodsId"] = $goodsId;	
+		$goods = $mgoods->getGoodDetails($shopId);
+		//dump($goods);
+		$goodsInfo=array();
+		if(!empty($goods)){
+			foreach ($goods as $good){
+				$m=M("goods_cats");
+				$cats=$m->field("catName")->where("catId=".$good["goodsCatId3"])->select();
+				//$good["catName"]=$cats["catName"];
+				if(!$this->arrayKeyExist($cats[0]['catName'],$goodsInfo)){ 
+					//dump($cats[0]);
+					$tmp=array();
+					$tmp["category_name"]=$cats[0]['catName'];
+					
+					$tmp1[]=array();
+					$tmp1["goods_name"]=$good["goodsName"];
+					$tmp1["goods_id"]=$good["goodsId"];
+					$tmp1["goods_price"]=$good["shopPrice"];
+					$tmp1["goods_imgLink"]="http://101.200.190.57/".$good["goodsImg"];
+					$tmp1["goods_month_sales"]=$good["totalnum"];						
+					$tmp['goodsList'][]=$tmp1;
+					//dump($tmp);
+					$goodsInfo[]=$tmp;
+				}
+				else{
+					//dump($cats[0]);
+					foreach ($goodsInfo as $key => $value){
+						if($goodsInfo[$key]["category_name"]==$cats[0]['catName']){
+							$tmp1[]=array();
+							$tmp1["goods_name"]=$good["goodsName"];
+							$tmp1["goods_id"]=$good["goodsId"];
+							$tmp1["goods_price"]=$good["shopPrice"];
+							$tmp1["goods_imgLink"]="http://101.200.190.57/".$good["goodsImg"];
+							$tmp1["goods_month_sales"]=$good["saleCount"];
+							
+							$goodsInfo[$key]["goodsList"][]=$tmp1;
+							break;
+						}
+					}
+				}
+				
+			}
+			//dump($goodsInfo);
+			return $this->json(100, '成功',$goodsInfo,"goodsCategoryList");
+		}
+		else{
+			return $this->json(100, '成功', $goodsInfo,"goodsCategoryList");
+		}
+	}
+
+		
+	
+	
 	
 	private function arrayKeyExist($var,$array){
 		foreach ($array as $key => $value){
@@ -747,12 +847,15 @@ class InterfaceAction extends BaseAction{
    public function getAddressInfoList(){
    		$d = D("UserAddress");
    		//$result=$d->addAPP();
+		//$addrList = array();
+		//dump($addrList);
    		$addrList = $d->getUserAddressApp();
-   		if(!empty($addrList)){
+		
+   		if(isset($addrList)){
    			return $this->json(100,'成功',$addrList, "addressInfoList");
    		}
    		else{
-   			return $this->json(300,"获取收货地址失败");
+   			return $this->json(200,"获取收货地址失败");
    		}
    }
 

@@ -78,10 +78,10 @@ class OrdersModel extends BaseModel {
 		$orderIds = array();
 		$orderNos = array();
 		$remarks = I("remarks");
-		file_put_contents("remarks.txt", $remarks);
+		file_put_contents("addorder_remarks.txt",$consigneeId);
 		
 		$addressInfo = UserAddressModel::getAddressDetails($consigneeId);
-		//file_put_contents("addressInfo.txt", json_encode($addressInfo));
+		file_put_contents("addressInfo.txt", json_encode($addressInfo));
         $m = M('orderids');
         $m->startTrans();
 		foreach ($catgoods as $key=> $shopgoods){
