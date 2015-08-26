@@ -134,7 +134,7 @@ class InterfaceAction extends BaseAction{
     			return $this->json(200, '验证码错误');
     			break;
     		case 3:#用户已注册
-    			return $this->json(401, '用户已注册');
+    			return $this->json(300, '用户已注册');
     			break;
     		default:
     			return $this->json(400, '注册失败');
@@ -150,6 +150,8 @@ class InterfaceAction extends BaseAction{
 
 		$loginName = I('userAccount');
 		$password = I('password');
+		//dump($loginName);
+		//dump($password);
 		$verificationCode = I('verificationCode');
 		$userPhone = session('findPass.userPhone');
 		$vcode = session('findPass.phoneVerify');
@@ -162,7 +164,7 @@ class InterfaceAction extends BaseAction{
 		}else{
 			$rd['status'] = 2;	
 		}
-		
+		//dump($rd['status']);
 		//检测账号是否存在
 		$md = D('Users');
         $crs = $md->checkLoginKey($loginName);
@@ -175,18 +177,21 @@ class InterfaceAction extends BaseAction{
 			$data = array();
 			//$data['loginName'] = I('userAccount');
 			$data['loginPwd'] = I("password");
-			$loginName = $data['loginName'];
+			
 			$data["loginSecret"] = rand(1000,9999);
 			
 			$data['loginPwd'] = md5(I('password').$data['loginSecret']);
 			
 		}
-	    
+	    //dump($rd['status']);
 		if($rd['status'] == 0){
+			
 			$rs = $m->where('loginName='.$loginName)->setField($data);
 			if(false !== $rs){
 			$rd['status'] = 1;
-			$info['userId']= $rs;
+			//$info['userId']= $rs;
+			$uid = $m-> where('loginName='.$loginName)->find();
+			$info["userId"] = $uid['userId'];
 			$info['userAccount'] = I('userAccount');
 			$info['password'] = I("password");			
 			} 
@@ -194,16 +199,16 @@ class InterfaceAction extends BaseAction{
 	       
 	    switch ($rd['status']) {
     		case 1:#密码重置成功
-    			return $this->json(100, '注册成功',$info,"findpasswdUserInfo");
+    			return $this->json(100, '密码重置成功',$info,"findpasswdUserInfo");
     			break;
     		case 2:#验证码错误
     			return $this->json(200, '验证码错误');
     			break;
     		case 3:#用户不存在
-    			return $this->json(401, '用户不存在');
+    			return $this->json(300, '用户不存在');
     			break;
     		default:
-    			return $this->json(400, '注册失败');
+    			return $this->json(400, '密码重置失败');
     			break;
     	}  	
 
@@ -621,6 +626,23 @@ class InterfaceAction extends BaseAction{
 
 
 	
+	
+	/**
+	* 统计商品信息
+	*    包括 月订单 月销量 月总售价 总订单 总销量 总售价
+	*/
+	public function countGoods($goodId){
+		
+		
+		$m = D('Home/Functions');
+		$goodsId = $goodId;
+		$details = $m->getGoodsDetails($goodsId);
+		
+		$data = $details;
+		//dump($data);
+		return $data;
+	}	
+	
 /**
  * 获取商品信息
  */		
@@ -646,8 +668,9 @@ class InterfaceAction extends BaseAction{
 					$tmp1["goods_id"]=$good["goodsId"];
 					$tmp1["goods_price"]=$good["shopPrice"];
 					$tmp1["goods_imgLink"]="http://101.200.190.57/".$good["goodsImg"];
-					
-					$tmp1["goods_month_sales"]=$good["saleCount"];	
+					$data=$this->countGoods($good["goodsId"]);	
+					$tmp1["goods_month_sales"]=$data['monthgoodsNums'];	
+					$tmp1["goods_quantity"]=$data["totalgoodsNums"];	
 					/* if($goodsCat==$cats[0]["catName"]){
 						$tmp=array();
 						$tmp["goods_name"]=$good["goodsName"];
@@ -671,8 +694,9 @@ class InterfaceAction extends BaseAction{
 							$tmp1["goods_id"]=$good["goodsId"];
 							$tmp1["goods_price"]=$good["shopPrice"];
 							$tmp1["goods_imgLink"]="http://101.200.190.57/".$good["goodsImg"];
-							$tmp1["goods_month_sales"]=$good["saleCount"];
-							
+							$data=$this->countGoods($good["goodsId"]);	
+							$tmp1["goods_month_sales"]=$data['monthgoodsNums'];	
+							$tmp1["goods_quantity"]=$data["totalgoodsNums"];
 							$goodsInfo[$key]["goodsList"][]=$tmp1;
 							break;
 						}
@@ -717,7 +741,9 @@ class InterfaceAction extends BaseAction{
 					$tmp1["goods_id"]=$good["goodsId"];
 					$tmp1["goods_price"]=$good["shopPrice"];
 					$tmp1["goods_imgLink"]="http://101.200.190.57/".$good["goodsImg"];
-					$tmp1["goods_month_sales"]=$good["totalnum"];						
+					
+					$data=$this->countGoods($good["goodsId"]);	
+					$tmp1["goods_month_sales"]=$data['monthgoodsNums'];					
 					$tmp['goodsList'][]=$tmp1;
 					//dump($tmp);
 					$goodsInfo[]=$tmp;

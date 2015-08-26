@@ -56,6 +56,106 @@ class FunctionsModel extends BaseModel {
 		return $rv;
 	}
 
+	/**
+	  * 统计店铺信息
+	  */
+	public function getShopDetails($obj){
+		
+		$shopId = $obj["shopId"];
+		$dsplist = array();
+		$sql = "SELECT SUM(totalScore) totalScore,SUM(totalUsers) totalScore ,
+				       SUM(goodsScore) goodsScore,SUM(goodsUsers) goodsUsers,
+				       SUM(serviceScore) serviceScore,SUM(serviceUsers) serviceUsers,
+					   SUM(timeScore) timeScore,SUM(timeUsers) timeUsers
+				FROM __PREFIX__goods_scores WHERE shopId = $shopId";
+		$scores = $this->queryRow($sql);
+		$data = array();
+		$goodsScore = $scores["goodsUsers"]?round($scores["goodsScore"]/$scores["goodsUsers"]):0;
+		$timeScore = $scores["timeUsers"]?round($scores["timeScore"]/$scores["timeUsers"]):0;
+		$serviceScore = $scores["serviceUsers"]?round($scores["serviceScore"]/$scores["serviceUsers"]):0;
+		$data["goodsScore"] = $goodsScore;
+		$data["timeScore"] = $timeScore;
+		$data["serviceScore"] = $serviceScore;
+		//待审核商品
+		$sql = "SELECT count(*) cnt FROM __PREFIX__goods WHERE goodsStatus = 0 and goodsFlag=1 and isSale=1 and shopId = $shopId";
+		$goods = $this->queryRow($sql);
+		$data["waitGoodsCnt"] = $goods["cnt"];
+		//仓库中商品
+		$sql = "SELECT count(*) cnt FROM __PREFIX__goods WHERE isSale = 0 and goodsFlag=1 AND shopId = $shopId";
+		$goods = $this->queryRow($sql);
+		$data["waitSaleGoodsCnt"] = $goods["cnt"];
+		//出售中的商品
+		$sql = "SELECT count(*) cnt FROM __PREFIX__goods WHERE isSale = 1 AND goodsStatus = 1 and goodsFlag=1 AND shopId = $shopId";
+		$goods = $this->queryRow($sql);
+		$data["onSaleGoodsCnt"] = $goods["cnt"];
+		//买家留言
+		$sql = "SELECT count(*) cnt FROM __PREFIX__goods_appraises WHERE shopId = $shopId";
+		$appraises = $this->queryRow($sql);
+		$data["appraisesCnt"] = $appraises["cnt"];
+		//待受理订单
+		$sql = "SELECT count(*) cnt FROM __PREFIX__orders WHERE shopId = $shopId AND orderStatus = 0 and orderFlag=1";
+		$orders = $this->queryRow($sql);
+		$data["waitHandleOrderCnt"] = $orders["cnt"];
+		//待发货订单
+		$sql = "SELECT count(*) cnt FROM __PREFIX__orders WHERE shopId = $shopId AND orderStatus in (1,2) and orderFlag=1";
+		$orders = $this->queryRow($sql);
+		$data["waitSendOrderCnt"] = $orders["cnt"];
+		
+		//待结束
+		$sql = "SELECT count(*) cnt FROM __PREFIX__orders WHERE shopId = $shopId AND orderStatus = 4 and orderFlag=1";
+		$appOrders = $this->queryRow($sql);
+		$data["appraisesOrderCnt"] = $appOrders["cnt"];
+		
+		//周订单量
+		$wdate=date("Y-m-d",mktime(0,0,0,date("m"),date("d")-7,date("Y")));
+		$sql = "SELECT count(*) cnt, sum(totalMoney) totalMoney FROM __PREFIX__orders WHERE shopId = $shopId AND createTime >='$wdate' and orderFlag=1 ";
+		$orders = $this->queryRow($sql);
+		$data["weekOrderCnt"] = $orders["cnt"];
+		$data["weekOrderMoney"] = $orders["totalMoney"]?$orders["totalMoney"]:0;
+		
+		
+		//一个月订单量
+		$mdate=date("Y-m-d",mktime(0,0,0,date("m")-1,date("d"),date("Y")));
+		$sql = "SELECT count(*) cnt, sum(totalMoney) totalMoney FROM __PREFIX__orders WHERE shopId = $shopId AND createTime >='$mdate' and orderFlag=1 ";
+		$orders = $this->queryRow($sql);
+		$data["monthOrderCnt"] = $orders["cnt"];
+		$data["monthOrderMoney"] = $orders["totalMoney"]?$orders["totalMoney"]:0;
+		
+		return $data;
+	}
+	
+	/**
+	  * 统计商品信息
+	  */
+	public function getGoodsDetails($obj){
+		
+		$goodsId = $obj;
+		//dump($goodsId);
+		//$dsplist = array();
+	
+
+		
+		//总销量
+		
+		$sql = "SELECT count(*) cnt, sum(goodsNums) goodsNums ,sum(goodsPrice) goodsPrice FROM __PREFIX__order_goods WHERE goodsId = $goodsId ";
+		$orders = $this->queryRow($sql);
+		$data["totalOrderNums"] = $orders["cnt"];
+		$data["totalgoodsNums"] = $orders["goodsNums"]?$orders["goodsNums"]:0;
+		$data["totalMoney"] = $orders["goodsPrice"]?$orders["goodsPrice"]:0;
+		
+		
+		//月销量
+		$mdate=date("Y-m-d",mktime(0,0,0,date("m")-1,date("d"),date("Y")));
+		$sql = "SELECT count(*) cnt, sum(goodsNums) goodsNums ,sum(goodsPrice) goodsPrice FROM __PREFIX__order_goods WHERE goodsId = $goodsId AND createTime >='$mdate' ";
+		$orders = $this->queryRow($sql);
+		$data["monthOrderNums"] = $orders["cnt"];
+		$data["monthgoodsNums"] = $orders["goodsNums"]?$orders["goodsNums"]:0;
+		$data["monthMoney"] = $orders["goodsPrice"]?$orders["goodsPrice"]:0;
+		//dump($data);
+		return $data;
+	}
+	
+	
 
 	/**
 	 * 获取订单商品信息
